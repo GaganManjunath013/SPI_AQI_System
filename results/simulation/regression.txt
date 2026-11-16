@@ -1,0 +1,1653 @@
+VCD info: dumpfile dump.vcd opened for output.
+
+  +==================================================================+
+  |   SPI Air-Quality Monitoring System -- Processing-Centric Arch   |
+  |   100 MHz clk | 25 MHz SPI | 921600 baud UART | 50-bit frames   |
+  +==================================================================+
+  |  DATA PIPELINE:                                                  |
+  |   Sensor A/B/C -> spi_top CRC-validate -> TMR median ->          |
+  |   8-sample MAF -> Build averaged frame + CRC ->                  |
+  |   Processing Slave (AQI authority) -> aqi_out / category         |
+  +==================================================================+
+  |  CRC-8 poly=0x07 seed=0xFF applied at TWO checkpoints:           |
+  |   1. spi_top validates each incoming sensor frame CRC            |
+  |   2. Processing slave validates the internal averaged frame CRC  |
+  +==================================================================+
+
+
+  ================================================================
+  SECTION  A  AQI via Processing Slave -- All 6 EPA Categories  (T01-T10)
+  roc.category used for cat checks
+  ================================================================
+  +- T01  T01 AQI Good   PM2.5=10
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T01]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=0  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] AQI from proc slave <= 50                        | got=0029  exp=0032 | @9385
+  |  [PASS] proc.category = 0 (Good)                         | got=0000  exp=0000 | @9385
+  |  [PASS] No internal CRC error                            | got=0000  exp=0000 | @9385
+  +- T01  [PASSED]  Assertions: 3 passed, 0 failed  Cycles:834
+
+  +- T02  T02 AQI Moderate PM2.5=35
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T02]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=35  PM10=20  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=13  avg_PM10=6  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000d01805000] CRC=c2
+  |  Processing Slave  : AQI=51  Category=1  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] proc AQI 51-100                                  | got=0033  exp=0033 | @50455
+  |  [PASS] proc.category = 1                                | got=0001  exp=0001 | @50455
+  +- T02  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4107
+
+  +- T03  T03 AQI Unhealthy PM2.5=80
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T03]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=80  PM10=40  VOC=15  CO=0
+  |  MAF   Averages    : avg_PM25=80  avg_PM10=40  avg_VOC=15  avg_CO=0
+  |  Internal Frame    : [00500a00f000] CRC=a6
+  |  Processing Slave  : AQI=163  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=160  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] proc AQI 101-200                                 | got=00a3  exp=0065 | @399895
+  |  [PASS] proc.category = 2                                | got=0002  exp=0002 | @399895
+  +- T03  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:34944
+
+  +- T04  T04 AQI Severe PM2.5=200
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T04]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=200  avg_PM10=14  avg_VOC=12  avg_CO=0
+  |  Internal Frame    : [00c80380c000] CRC=9c
+  |  Processing Slave  : AQI=250  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=235  cat=3  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] proc AQI 201-300                                 | got=00fa  exp=00c9 | @749335
+  |  [PASS] proc.category = 3                                | got=0003  exp=0003 | @749335
+  +- T04  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:34944
+
+  +- T05  T05 AQI Very Severe PM2.5=300
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T05]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=300  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=300  avg_PM10=14  avg_VOC=12  avg_CO=0
+  |  Internal Frame    : [012c0380c000] CRC=79
+  |  Processing Slave  : AQI=350  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=337  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] proc AQI 301-400                                 | got=015e  exp=012d | @1098775
+  |  [PASS] proc.category = 4                                | got=0004  exp=0004 | @1098775
+  +- T05  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:34944
+
+  +- T06  T06 AQI Hazardous PM2.5=450
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T06]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=449  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=449  avg_PM10=14  avg_VOC=12  avg_CO=0
+  |  Internal Frame    : [01c10380c000] CRC=0b
+  |  Processing Slave  : AQI=466  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=453  cat=5  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] proc AQI 401-500                                 | got=01d2  exp=0191 | @1448215
+  |  [PASS] proc AQI clamped<=500                            | got=01d2  exp=01f4 | @1448215
+  |  [PASS] proc.category = 5                                | got=0005  exp=0005 | @1448215
+  +- T06  [PASSED]  Assertions: 3 passed, 0 failed  Cycles:34944
+
+  +- T07  T07 PM2.5 seg0/seg1 boundary
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T07]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=11  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=11  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000b01005000] CRC=d2
+  |  Processing Slave  : AQI=45  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=155  cat=2  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] proc AQI<=50 at seg0 boundary                    | got=002d  exp=0032 | @1797655
+  +- T07  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:34944
+
+  +- T08  T08 Decimal inputs PM2.5/PM10
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T08]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=35  PM10=52  VOC=120  CO=0
+  |  MAF   Averages    : avg_PM25=14  avg_PM10=10  avg_VOC=19  avg_CO=0
+  |  Internal Frame    : [000e02813000] CRC=41
+  |  Processing Slave  : AQI=53  Category=1  CRC_err=0
+  |  System Outputs    : aqi_latched=45  cat=0  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] proc cat<=Unhealthy                              | got=0001  exp=0002 | @1841335
+  |  [PASS] No CRC error                                     | got=0000  exp=0000 | @1841335
+  +- T08  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+  +- T09  T09 VOC dominant AQI
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T09]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=900  CO=0
+  |  MAF   Averages    : avg_PM25=13  avg_PM10=10  avg_VOC=131  avg_CO=0
+  |  Internal Frame    : [000d02883000] CRC=66
+  |  Processing Slave  : AQI=65  Category=1  CRC_err=0
+  |  System Outputs    : aqi_latched=53  cat=1  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] proc.aqi reflects VOC dominance                  | got=0041  exp=0001 | @1885015
+  |  [PASS] proc cat>=Moderate                               | got=0001  exp=0001 | @1885015
+  +- T09  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+  +- T10  T10 PM10 dominant AQI
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T10]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=500  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=500  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a7d005000] CRC=fc
+  |  Processing Slave  : AQI=395  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=317  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] proc AQI>=Severe due to PM10                     | got=018b  exp=00c9 | @2234455
+  |  [PASS] proc cat>=Severe                                 | got=0004  exp=0003 | @2234455
+  +- T10  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:34944
+
+
+  ================================================================
+  SECTION  B  Input Validation & Clamping  (T11-T15)
+  , per-channel error flags, AQI=0
+  ================================================================
+  +- T11  T11 All channels negative -> AQI=0
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T11]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=0  PM10=0  VOC=0  CO=0
+  |  MAF   Averages    : avg_PM25=0  avg_PM10=0  avg_VOC=0  avg_CO=0
+  |  Internal Frame    : [000000000000] CRC=39
+  |  Processing Slave  : AQI=0  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=54  cat=1  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] input_err=1111                                   | got=000f  exp=000f | @2583895
+  |  [PASS] proc AQI=0                                       | got=0000  exp=0000 | @2583895
+  +- T11  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:34845
+
+  +- T12  T12 PM2.5 negative only
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T12]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=0  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=0  avg_PM10=0  avg_VOC=0  avg_CO=0
+  |  Internal Frame    : [000000000000] CRC=39
+  |  Processing Slave  : AQI=0  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=0  cat=0  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] input_err[3]=1                                   | got=0001  exp=0001 | @2627575
+  |  [PASS] input_err[2]=0                                   | got=0000  exp=0000 | @2627575
+  +- T12  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+  +- T13  T13 PM2.5=0 invalid
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T13]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=0  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=0  avg_PM10=1  avg_VOC=1  avg_CO=0
+  |  Internal Frame    : [000000401000] CRC=cf
+  |  Processing Slave  : AQI=0  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=0  cat=0  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] input_err[3]=1                                   | got=0001  exp=0001 | @2671255
+  +- T13  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:4368
+
+  +- T14  T14 CO channel negative
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T14]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=1  avg_PM10=1  avg_VOC=1  avg_CO=0
+  |  Internal Frame    : [000100401000] CRC=54
+  |  Processing Slave  : AQI=4  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=0  cat=0  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] input_err[0]=1 (CO bad)                          | got=0001  exp=0001 | @2714935
+  |  [PASS] PM/VOC valid                                     | got=0000  exp=0000 | @2714935
+  +- T14  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+  +- T15  T15 PM10+CO bad PM2.5+VOC valid
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T15]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=0  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=2  avg_PM10=1  avg_VOC=2  avg_CO=0
+  |  Internal Frame    : [000200402000] CRC=02
+  |  Processing Slave  : AQI=8  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=4  cat=0  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] input_err[2]=1                                   | got=0001  exp=0001 | @2758615
+  |  [PASS] input_err[0]=1                                   | got=0001  exp=0001 | @2758615
+  +- T15  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+
+  ================================================================
+  SECTION  C  Triple Redundancy Median Voter  (T16-T20)
+  I stability via processing slave
+  ================================================================
+  +- T16  T16 All 3 sensors equal -- no fault
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T16]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=3  avg_PM10=2  avg_VOC=3  avg_CO=0
+  |  Internal Frame    : [000300803000] CRC=2c
+  |  Processing Slave  : AQI=12  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=8  cat=0  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] sensor_fault=0                                   | got=0000  exp=0000 | @2802295
+  |  [PASS] med_pm25 == pm25_a                               | got=000a  exp=000a | @2802295
+  +- T16  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4269
+
+  +- T17  T17 Sensor C spike -- outlier rejected
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T17]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=8  avg_PM10=3  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000800c05000] CRC=1f
+  |  Processing Slave  : AQI=33  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=29  cat=0  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] fault[0]=1 (C deviated)                          | got=0001  exp=0001 | @2977015
+  |  [PASS] proc AQI unaffected by spike                     | got=0021  exp=0050 | @2977015
+  +- T17  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:17472
+
+  +- T18  T18 Sensor A spike -- B+C median
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T18]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=3  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a00c05000] CRC=2e
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=33  cat=0  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] fault[2]=1 (A outlier)                           | got=0004  exp=0004 | @3020695
+  |  [PASS] proc AQI stays low                               | got=0029  exp=0032 | @3020695
+  +- T18  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+  +- T19  T19 Two sensors spike -- majority wins
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T19]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=33  avg_PM10=3  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [002100c05000] CRC=59
+  |  Processing Slave  : AQI=95  Category=1  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=1
+  +==============================================================+
+
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T19]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=200  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [00c801005000] CRC=2e
+  |  Processing Slave  : AQI=250  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=226  cat=3  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] fault[0]=1 (C laggard)                           | got=0001  exp=0001 | @3370135
+  |  [PASS] proc AQI rising (majority high)                  | got=00fa  exp=0032 | @3370135
+  +- T19  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:34944
+
+  +- T20  T20 Sensor B drift
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T20]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=14  VOC=12  CO=12
+  |  MAF   Averages    : avg_PM25=176  avg_PM10=5  avg_VOC=5  avg_CO=1
+  |  Internal Frame    : [00b001405004] CRC=eb
+  |  Processing Slave  : AQI=226  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=250  cat=3  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] fault[1]=1 (B drifted)                           | got=0002  exp=0002 | @3413815
+  |  [PASS] fault[2]=0 (A ok)                                | got=0000  exp=0000 | @3413815
+  +- T20  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+
+  ================================================================
+  SECTION  D  MAF Smoothing -- Verified via Internal Transfer Frame  (T21-T24)
+  ear in proc_frame_latched[49:10]
+  ================================================================
+  +- T21  T21 MAF pre-fill -- avg converges
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T21]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] avg_pm25<20                                      | got=000a  exp=0014 | @4200055
+  |  [PASS] maf_valid=1                                      | got=0001  exp=0001 | @4200055
+  |  [PASS] Internal frame[49:40] == avg_pm25                | got=000a  exp=000a | @4200055
+  +- T21  [PASSED]  Assertions: 3 passed, 0 failed  Cycles:34944
+
+  +- T22  T22 MAF step Good->Severe 8 cyc
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T22]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=200  avg_PM10=14  avg_VOC=12  avg_CO=0
+  |  Internal Frame    : [00c80380c000] CRC=9c
+  |  Processing Slave  : AQI=250  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=226  cat=3  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] avg_pm25 monotone rises                          | got=00c8  exp=0064 | @4549495
+  |  [PASS] avg_pm25>100 after 8 Severe                      | got=00c8  exp=0064 | @4549495
+  +- T22  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:34944
+
+  +- T23  T23 Single spike dampened by MAF
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T23]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=95  cat=1  alarm=1  trend=0
+  +==============================================================+
+
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T23]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=33  avg_PM10=5  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [002101405000] CRC=9c
+  |  Processing Slave  : AQI=95  Category=1  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Spike delta<50                                   | got=0021  exp=003c | @4942615
+  +- T23  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:39312
+
+  +- T24  T24 MAF recovery after spike
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T24]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=33  avg_PM10=5  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [002101405000] CRC=9c
+  |  Processing Slave  : AQI=95  Category=1  CRC_err=0
+  |  System Outputs    : aqi_latched=95  cat=1  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] All faults clear                                 | got=0000  exp=0000 | @4986295
+  |  [PASS] proc AQI<100 after recovery                      | got=005f  exp=0064 | @4986295
+  +- T24  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+
+  ================================================================
+  SECTION  E  Alarm Hysteresis via Processing Slave Category  (T25-T28)
+  rt; cat comes from proc.category
+  ================================================================
+  +- T25  T25 Alarm OFF before threshold reached
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T25]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=200  avg_PM10=14  avg_VOC=12  avg_CO=0
+  |  Internal Frame    : [00c80380c000] CRC=9c
+  |  Processing Slave  : AQI=250  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=226  cat=3  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] Alarm OFF before N_ON reached                    | got=0000  exp=0000 | @6209346
+  +- T25  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:34945
+
+  +- T26  T26 Continued Severe -- alarm asserts
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T26]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=200  avg_PM10=14  avg_VOC=12  avg_CO=0
+  |  Internal Frame    : [00c80380c000] CRC=9c
+  |  Processing Slave  : AQI=250  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=250  cat=3  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] alarm_state=1                                    | got=0001  exp=0001 | @6471426
+  |  [PASS] alarm_pin HIGH                                   | got=0001  exp=0001 | @6471426
+  +- T26  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:26208
+
+  +- T27  T27 7 Good readings -- alarm still ON
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T27]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=33  avg_PM10=5  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [002101405000] CRC=9c
+  |  Processing Slave  : AQI=95  Category=1  CRC_err=0
+  |  System Outputs    : aqi_latched=151  cat=2  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Alarm ON at N_OFF-1                              | got=0001  exp=0001 | @6777186
+  +- T27  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:30576
+
+  +- T28  T28 8th Good -- alarm deasserts
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T28]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] alarm_state=0                                    | got=0000  exp=0000 | @7170306
+  |  [PASS] alarm_pin LOW                                    | got=0000  exp=0000 | @7170306
+  +- T28  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:39312
+
+
+  ================================================================
+  SECTION  F  Sensor-Level CRC Fault Injection  (T29-T32)
+  RC; bad sensor excluded from TMR
+  ================================================================
+  +- T29  T29 Clean frames -- all sensor CRCs OK
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T29]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] sens_a_crc_ok=1                                  | got=0001  exp=0001 | @7213986
+  |  [PASS] sens_b_crc_ok=1                                  | got=0001  exp=0001 | @7213986
+  |  [PASS] sens_c_crc_ok=1                                  | got=0001  exp=0001 | @7213986
+  |  [PASS] system crc_err=0                                 | got=0000  exp=0000 | @7213986
+  +- T29  [PASSED]  Assertions: 4 passed, 0 failed  Cycles:4268
+
+  +- T30  T30 Sensor A bit-flip -- CRC fail
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T30]
+  +==============================================================+
+  |  Sensor CRC Status : A=FAIL  B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] sens_a_crc_ok=0 detected by spi_top              | got=0000  exp=0000 | @7257666
+  |  [PASS] crc_err=1 propagated to output                   | got=0001  exp=0001 | @7257666
+  +- T30  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+  +- T31  T31 Sensor A CRC fail: B+C valid
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T31]
+  +==============================================================+
+  |  Sensor CRC Status : A=FAIL  B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] proc slave still produces valid AQI              | got=0029  exp=01f4 | @7301346
+  |  [PASS] proc.category in valid range                     | got=0000  exp=0005 | @7301346
+  +- T31  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+  +- T32  T32 Clean frame -- crc_err clears
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T32]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] crc_err clears after clean cycle                 | got=0000  exp=0000 | @7345015
+  |  [PASS] sens_a_crc_ok=1 restored                         | got=0001  exp=0001 | @7345015
+  +- T32  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4367
+
+
+  ================================================================
+  SECTION  G  Internal Transfer Frame CRC Injection  (T33-T35)
+  ched; slave reports crc_err_flag
+  ================================================================
+  +- T33  T33 Internal 1-bit flip: CRC err
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T33]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=1
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] proc.crc_err_flag detected internal frame corruption | got=0001  exp=0001 | @7388695
+  +- T33  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:4269
+
+  +- T34  T34 Internal 8-bit burst: reject
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T34]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=1
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] proc slave detects 8-bit burst error in internal frame | got=0001  exp=0001 | @7432375
+  +- T34  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:4368
+
+  +- T35  T35 Clean frame after injection
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T35]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] crc_err clears after clean internal frame        | got=0000  exp=0000 | @7476055
+  |  [PASS] proc AQI valid after recovery                    | got=0029  exp=01f4 | @7476055
+  +- T35  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+
+  ================================================================
+  SECTION  H  Watchdog Timer & Sensor Fault  (T36-T38)
+  imeout, sensor dropout, recovery
+  ================================================================
+  +- T36  T36 Normal transaction -- no watchdog
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T36]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] No timeout                                       | got=0000  exp=0000 | @7519735
+  +- T36  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:4269
+
+  +- T37  T37 Sensor silent -- watchdog fires
+  |  [PASS] sensor_timeout=1                                 | got=0001  exp=0001 | @7557186
+  |  [PASS] CS1 released                                     | got=0001  exp=0001 | @7557186
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T37]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] Timeout clears after recovery                    | got=0000  exp=0000 | @7585255
+  +- T37  [PASSED]  Assertions: 3 passed, 0 failed  Cycles:6552
+
+  +- T38  T38 Post-recovery proc AQI correct
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T38]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] proc AQI<=50 post-recovery                       | got=0029  exp=0032 | @7628935
+  |  [PASS] crc_err=0                                        | got=0000  exp=0000 | @7628935
+  +- T38  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:4368
+
+
+  ================================================================
+  SECTION  I  Sleep / Wake Mode  (T39-T41)
+  ke command; post-wake AQI verify
+  ================================================================
+  +- T39  T39 Sleep blocks start_i
+  |  [PASS] FSM stays IDLE                                   | got=0000  exp=0000 | @7664575
+  |  [PASS] CS lines HIGH                                    | got=0003  exp=0003 | @7664575
+  +- T39  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:3465
+
+  +- T40  T40 UART 0x04 triggers wakeup_o
+  |  [PASS] wakeup_o pulsed                                  | got=0001  exp=0001 | @7686135
+  |  [PASS] wakeup_o LOW after 1 cycle                       | got=0000  exp=0000 | @7686140
+  +- T40  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:2156
+
+  +- T41  T41 Post-wake proc AQI correct
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T41]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] proc AQI<=50 post-wake                           | got=0029  exp=0032 | @7704865
+  |  [PASS] crc_err=0 post-wake                              | got=0000  exp=0000 | @7704865
+  +- T41  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:1873
+
+
+  ================================================================
+  SECTION  J  UART DMA Non-Blocking & Commands  (T42-T47)
+  ins; 0xAA/CC/EE/BB/BF/DD packets
+  ================================================================
+  +- T42  T42 done_o fires before FIFO drains
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T42]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] FIFO drains AFTER done_o                         | got=0000  exp=0000 | @7781325
+  +- T42  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:7547
+
+  +- T43  T43 Live packet starts with 0xAA
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T43]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] 0xAA header seen                                 | got=0001  exp=0001 | @7800605
+  +- T43  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:1928
+
+  +- T44  T44 UART 0x01 -> 0xCC ACK
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T44]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] 0xCC ACK seen                                    | got=0001  exp=0001 | @7896275
+  +- T44  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:9567
+
+  +- T45  T45 Watchdog -> 0xEE error packet
+  |  [PASS] 0xEE error header seen                           | got=0001  exp=0001 | @7909285
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T45]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=41  cat=0  alarm=0  trend=0
+  +==============================================================+
+
+  +- T45  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:3220
+
+  +- T46  T46 UART 0x02 -> BRAM dump BB/DD
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T46]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=105  avg_PM10=9  avg_VOC=8  avg_CO=0
+  |  Internal Frame    : [006902408000] CRC=4a
+  |  Processing Slave  : AQI=176  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=163  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] BRAM has entries                                 | got=0004  exp=0001 | @9416245
+  |  [PASS] 0xBB header seen                                 | got=0001  exp=0001 | @9416245
+  |  [PASS] 0xDD end marker                                  | got=0001  exp=0001 | @9416245
+  +- T46  [PASSED]  Assertions: 3 passed, 0 failed  Cycles:149886
+
+  +- T47  T47 UART 0x06 -> flash dump with 0xBF
+  |  [PASS] 0xBF flash header seen                           | got=0001  exp=0001 | @9441795
+  +- T47  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:2611
+
+
+  ================================================================
+  SECTION  K  SPI Flash Persistence  (T48-T50)
+  ce, verify-retry, BOD safe-abort
+  ================================================================
+  +- T48  T48 Alarm -- flash ptr advances
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T48]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=200  avg_PM10=14  avg_VOC=12  avg_CO=0
+  |  Internal Frame    : [00c80380c000] CRC=9c
+  |  Processing Slave  : AQI=250  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=250  cat=3  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Flash pointer advanced                           | got=0028  exp=0021 | @11197875
+  +- T48  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:174344
+
+  +- T49  T49 Verify fail -> flash_write_err
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T49]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=105  avg_PM10=9  avg_VOC=8  avg_CO=0
+  |  Internal Frame    : [006902408000] CRC=4a
+  |  Processing Slave  : AQI=176  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=163  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] flash_write_err=1 after retry                    | got=0001  exp=0001 | @13119196
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T49]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=105  avg_PM10=9  avg_VOC=8  avg_CO=0
+  |  Internal Frame    : [006902408000] CRC=4a
+  |  Processing Slave  : AQI=176  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=163  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] flash_write_err clears                           | got=0000  exp=0000 | @14206595
+  +- T49  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:300872
+
+  +- T50  T50 BOD mid-write -- safe abort
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T50]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=95  cat=1  alarm=0  trend=0
+  +==============================================================+
+
+  |  [PASS] bod_flag asserted                                | got=0001  exp=0001 | @14918456
+  |  [PASS] flash_cs released                                | got=0001  exp=0001 | @14918456
+  |  [PASS] S_BOD_WAIT state                                 | got=001f  exp=001f | @14918456
+  |  [PASS] Not busy after BOD deassert                      | got=0000  exp=0000 | @14918486
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T50]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=200  avg_PM10=14  avg_VOC=12  avg_CO=0
+  |  Internal Frame    : [00c80380c000] CRC=9c
+  |  Processing Slave  : AQI=250  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=250  cat=3  alarm=1  trend=1
+  +==============================================================+
+
+  +- T50  [PASSED]  Assertions: 4 passed, 0 failed  Cycles:84301
+
+
+  ================================================================
+  SECTION  L  SPI Slave Register Map  (T51-T53)
+   proc slave); dynamic thresholds
+  ================================================================
+  +- T51  T51 MCU reads AQI register
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T51]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=10  avg_PM10=4  avg_VOC=5  avg_CO=0
+  |  Internal Frame    : [000a01005000] CRC=49
+  |  Processing Slave  : AQI=41  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=95  cat=1  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] AQI register Good range (proc slave)             | got=0029  exp=0032 | @15438135
+  |  [PASS] AQI upper bits=0                                 | got=0000  exp=0000 | @15438135
+  +- T51  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:38753
+
+  +- T52  T52 MCU reads Category register
+  |  [PASS] Cat in 0-5                                       | got=0000  exp=0005 | @15441935
+  |  [PASS] Upper bits=0                                     | got=0000  exp=0000 | @15441935
+  +- T52  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:380
+
+  +- T53  T53 MCU writes fault threshold
+  |  [PASS] fault_thresh_dyn=20                              | got=0014  exp=0014 | @15444725
+  |  [PASS] fault_thresh restored to 50                      | got=0032  exp=0032 | @15447515
+  +- T53  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:559
+
+
+  ================================================================
+  SECTION  M  Extreme Boundary Sweeps  (T54-T60)
+  akpoint sweeps, random, CS mutex
+  ================================================================
+  +- T54  T54 Max Saturation 0x0FFF
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T54]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=499  PM10=599  VOC=999  CO=999
+  |  MAF   Averages    : avg_PM25=499  avg_PM10=599  avg_VOC=999  avg_CO=999
+  |  Internal Frame    : [01f395fe7f9c] CRC=a2
+  |  Processing Slave  : AQI=500  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=458  cat=5  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] proc AQI clamped<=500                            | got=01f4  exp=01f4 | @15759995
+  |  [PASS] proc cat=5 Hazardous                             | got=0005  exp=0005 | @15759995
+  |  [PASS] No CRC error at max                              | got=0000  exp=0000 | @15759995
+  +- T54  [PASSED]  Assertions: 3 passed, 0 failed  Cycles:31149
+
+  +- T55  T55 Minimum valid input (raw=1)
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T55]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=0  PM10=0  VOC=0  CO=0
+  |  MAF   Averages    : avg_PM25=0  avg_PM10=0  avg_VOC=0  avg_CO=0
+  |  Internal Frame    : [000000000000] CRC=39
+  |  Processing Slave  : AQI=0  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=154  cat=2  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] proc AQI=0 at min                                | got=0000  exp=0000 | @16109435
+  |  [PASS] cat=Good at min                                  | got=0000  exp=0000 | @16109435
+  |  [PASS] No input_err at min valid                        | got=0000  exp=0000 | @16109435
+  +- T55  [PASSED]  Assertions: 3 passed, 0 failed  Cycles:34944
+
+  +- T56  T56 Randomized noise sweep (32)
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=125  PM10=123  VOC=438  CO=283
+  |  MAF   Averages    : avg_PM25=15  avg_PM10=15  avg_VOC=54  avg_CO=35
+  |  Internal Frame    : [000f03c3608c] CRC=a2
+  |  Processing Slave  : AQI=55  Category=1  CRC_err=0
+  |  System Outputs    : aqi_latched=0  cat=0  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0037  exp=01f4 | @16153115
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=471  PM10=251  VOC=221  CO=765
+  |  MAF   Averages    : avg_PM25=74  avg_PM10=46  avg_VOC=82  avg_CO=131
+  |  Internal Frame    : [004a0b85220c] CRC=04
+  |  Processing Slave  : AQI=160  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=55  cat=1  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=00a0  exp=01f4 | @16196795
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=221  PM10=497  VOC=276  CO=389
+  |  MAF   Averages    : avg_PM25=102  avg_PM10=108  avg_VOC=116  avg_CO=179
+  |  Internal Frame    : [00661b0742cc] CRC=79
+  |  Processing Slave  : AQI=174  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=160  cat=2  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=00ae  exp=01f4 | @16240475
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=207  PM10=120  VOC=262  CO=805
+  |  MAF   Averages    : avg_PM25=128  avg_PM10=123  avg_VOC=149  avg_CO=280
+  |  Internal Frame    : [00801ec95460] CRC=06
+  |  Processing Slave  : AQI=188  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=174  cat=2  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=00bc  exp=01f4 | @16284155
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=495  PM10=176  VOC=62  CO=650
+  |  MAF   Averages    : avg_PM25=189  avg_PM10=145  avg_VOC=157  avg_CO=361
+  |  Internal Frame    : [00bd2449d5a4] CRC=df
+  |  Processing Slave  : AQI=239  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=188  cat=2  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=00ef  exp=01f4 | @16327835
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=217  PM10=405  VOC=367  CO=786
+  |  MAF   Averages    : avg_PM25=217  avg_PM10=196  avg_VOC=203  avg_CO=459
+  |  Internal Frame    : [00d9310cb72c] CRC=54
+  |  Processing Slave  : AQI=267  Category=3  CRC_err=0
+  |  System Outputs    : aqi_latched=239  cat=3  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=010b  exp=01f4 | @16371515
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=425  PM10=207  VOC=850  CO=75
+  |  MAF   Averages    : avg_PM25=270  avg_PM10=222  avg_VOC=309  avg_CO=469
+  |  Internal Frame    : [010e37935754] CRC=23
+  |  Processing Slave  : AQI=320  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=267  cat=3  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0140  exp=01f4 | @16415195
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=385  PM10=535  VOC=177  CO=236
+  |  MAF   Averages    : avg_PM25=318  avg_PM10=289  avg_VOC=331  avg_CO=498
+  |  Internal Frame    : [013e4854b7c8] CRC=4e
+  |  Processing Slave  : AQI=368  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=320  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0170  exp=01f4 | @16458875
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=82  PM10=45  VOC=489  CO=693
+  |  MAF   Averages    : avg_PM25=312  avg_PM10=279  avg_VOC=338  avg_CO=549
+  |  Internal Frame    : [013845d52894] CRC=57
+  |  Processing Slave  : AQI=362  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=368  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=016a  exp=01f4 | @16502555
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=279  PM10=508  VOC=22  CO=646
+  |  MAF   Averages    : avg_PM25=288  avg_PM10=311  avg_VOC=313  avg_CO=535
+  |  Internal Frame    : [01204dd3985c] CRC=21
+  |  Processing Slave  : AQI=338  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=362  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0152  exp=01f4 | @16546235
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=489  PM10=319  VOC=64  CO=576
+  |  MAF   Averages    : avg_PM25=322  avg_PM10=289  avg_VOC=286  avg_CO=558
+  |  Internal Frame    : [01424851e8b8] CRC=5a
+  |  Processing Slave  : AQI=372  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=338  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0174  exp=01f4 | @16589915
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=474  PM10=218  VOC=877  CO=358
+  |  MAF   Averages    : avg_PM25=355  avg_PM10=301  avg_VOC=363  avg_CO=502
+  |  Internal Frame    : [01634b56b7d8] CRC=e9
+  |  Processing Slave  : AQI=403  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=372  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0193  exp=01f4 | @16633595
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=123  PM10=398  VOC=562  CO=514
+  |  MAF   Averages    : avg_PM25=309  avg_PM10=329  avg_VOC=426  avg_CO=485
+  |  Internal Frame    : [0135525aa794] CRC=65
+  |  Processing Slave  : AQI=359  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=403  cat=5  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0167  exp=01f4 | @16677275
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=268  PM10=323  VOC=698  CO=210
+  |  MAF   Averages    : avg_PM25=315  avg_PM10=319  avg_VOC=467  avg_CO=413
+  |  Internal Frame    : [013b4fdd3674] CRC=46
+  |  Processing Slave  : AQI=365  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=359  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=016d  exp=01f4 | @16720955
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=390  PM10=352  VOC=49  CO=836
+  |  MAF   Averages    : avg_PM25=311  avg_PM10=337  avg_VOC=367  avg_CO=508
+  |  Internal Frame    : [01375456f7f0] CRC=b8
+  |  Processing Slave  : AQI=361  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=365  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0169  exp=01f4 | @16764635
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=316  PM10=242  VOC=358  CO=219
+  |  MAF   Averages    : avg_PM25=302  avg_PM10=300  avg_VOC=389  avg_CO=506
+  |  Internal Frame    : [012e4b1857e8] CRC=3a
+  |  Processing Slave  : AQI=352  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=361  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0160  exp=01f4 | @16808315
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=499  PM10=48  VOC=448  CO=125
+  |  MAF   Averages    : avg_PM25=354  avg_PM10=301  avg_VOC=384  avg_CO=435
+  |  Internal Frame    : [01624b5806cc] CRC=f7
+  |  Processing Slave  : AQI=403  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=352  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0193  exp=01f4 | @16851995
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=153  PM10=29  VOC=967  CO=400
+  |  MAF   Averages    : avg_PM25=339  avg_PM10=241  avg_VOC=502  avg_CO=404
+  |  Internal Frame    : [01533c5f6650] CRC=62
+  |  Processing Slave  : AQI=389  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=403  cat=5  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0185  exp=01f4 | @16895675
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=297  PM10=166  VOC=819  CO=719
+  |  MAF   Averages    : avg_PM25=315  avg_PM10=222  avg_VOC=597  avg_CO=422
+  |  Internal Frame    : [013b37a55698] CRC=35
+  |  Processing Slave  : AQI=365  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=389  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=016d  exp=01f4 | @16939355
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=128  PM10=278  VOC=545  CO=870
+  |  MAF   Averages    : avg_PM25=271  avg_PM10=229  avg_VOC=555  avg_CO=486
+  |  Internal Frame    : [010f3962b798] CRC=01
+  |  Processing Slave  : AQI=321  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=365  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0141  exp=01f4 | @16983035
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=202  PM10=122  VOC=5  CO=469
+  |  MAF   Averages    : avg_PM25=281  avg_PM10=195  avg_VOC=486  avg_CO=481
+  |  Internal Frame    : [011930de6784] CRC=cb
+  |  Processing Slave  : AQI=331  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=321  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=014b  exp=01f4 | @17026715
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=422  PM10=269  VOC=73  CO=466
+  |  MAF   Averages    : avg_PM25=300  avg_PM10=188  avg_VOC=408  avg_CO=513
+  |  Internal Frame    : [012c2f198804] CRC=ec
+  |  Processing Slave  : AQI=350  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=331  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=015e  exp=01f4 | @17070395
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=469  PM10=465  VOC=263  CO=410
+  |  MAF   Averages    : avg_PM25=310  avg_PM10=202  avg_VOC=434  avg_CO=459
+  |  Internal Frame    : [0136329b272c] CRC=c6
+  |  Processing Slave  : AQI=360  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=350  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0168  exp=01f4 | @17114075
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=345  PM10=3  VOC=407  CO=142
+  |  MAF   Averages    : avg_PM25=314  avg_PM10=172  avg_VOC=440  avg_CO=450
+  |  Internal Frame    : [013a2b1b8708] CRC=e8
+  |  Processing Slave  : AQI=364  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=360  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=016c  exp=01f4 | @17157755
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=424  PM10=70  VOC=399  CO=570
+  |  MAF   Averages    : avg_PM25=305  avg_PM10=175  avg_VOC=434  avg_CO=505
+  |  Internal Frame    : [01312bdb27e4] CRC=c0
+  |  Processing Slave  : AQI=355  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=364  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0163  exp=01f4 | @17201435
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=478  PM10=252  VOC=803  CO=135
+  |  MAF   Averages    : avg_PM25=345  avg_PM10=203  avg_VOC=414  avg_CO=472
+  |  Internal Frame    : [015932d9e760] CRC=75
+  |  Processing Slave  : AQI=395  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=355  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=018b  exp=01f4 | @17245115
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=37  PM10=72  VOC=510  CO=808
+  |  MAF   Averages    : avg_PM25=313  avg_PM10=191  avg_VOC=375  avg_CO=483
+  |  Internal Frame    : [01392fd7778c] CRC=ea
+  |  Processing Slave  : AQI=363  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=395  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=016b  exp=01f4 | @17288795
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=332  PM10=272  VOC=199  CO=288
+  |  MAF   Averages    : avg_PM25=338  avg_PM10=190  avg_VOC=332  avg_CO=411
+  |  Internal Frame    : [01522f94c66c] CRC=dd
+  |  Processing Slave  : AQI=388  Category=4  CRC_err=0
+  |  System Outputs    : aqi_latched=363  cat=4  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0184  exp=01f4 | @17332475
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=397  PM10=410  VOC=598  CO=303
+  |  MAF   Averages    : avg_PM25=363  avg_PM10=226  avg_VOC=406  avg_CO=390
+  |  Internal Frame    : [016b38996618] CRC=64
+  |  Processing Slave  : AQI=409  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=388  cat=4  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0199  exp=01f4 | @17376155
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=482  PM10=130  VOC=475  CO=634
+  |  MAF   Averages    : avg_PM25=370  avg_PM10=209  avg_VOC=456  avg_CO=411
+  |  Internal Frame    : [0172345c866c] CRC=5d
+  |  Processing Slave  : AQI=413  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=409  cat=5  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=019d  exp=01f4 | @17419835
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=464  PM10=559  VOC=426  CO=56
+  |  MAF   Averages    : avg_PM25=369  avg_PM10=221  avg_VOC=477  avg_CO=367
+  |  Internal Frame    : [0171375dd5bc] CRC=e0
+  |  Processing Slave  : AQI=413  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=413  cat=5  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=019d  exp=01f4 | @17463515
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T56]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=286  PM10=397  VOC=584  CO=139
+  |  MAF   Averages    : avg_PM25=362  avg_PM10=270  avg_VOC=499  avg_CO=366
+  |  Internal Frame    : [016a439f35b8] CRC=99
+  |  Processing Slave  : AQI=408  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=413  cat=5  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] Rand frame proc-slave invariants                 | got=0198  exp=01f4 | @17507195
+  |  [INFO] Randomized: 32/32 passed
+  +- T56  [PASSED]  Assertions: 32 passed, 0 failed  Cycles:139776
+
+  +- T57  T57 All channels max-neg -> AQI=0
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T57]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=0  PM10=0  VOC=0  CO=0
+  |  MAF   Averages    : avg_PM25=0  avg_PM10=0  avg_VOC=0  avg_CO=0
+  |  Internal Frame    : [000000000000] CRC=39
+  |  Processing Slave  : AQI=0  Category=0  CRC_err=0
+  |  System Outputs    : aqi_latched=99  cat=1  alarm=1  trend=0
+  +==============================================================+
+
+  |  [PASS] input_err=1111                                   | got=000f  exp=000f | @17856635
+  |  [PASS] proc AQI=0                                       | got=0000  exp=0000 | @17856635
+  |  [PASS] proc cat=Good(0)                                 | got=0000  exp=0000 | @17856635
+  +- T57  [PASSED]  Assertions: 3 passed, 0 failed  Cycles:34944
+
+  +- T58  T58 Trend rising after AQI jump
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T58]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=200  PM10=14  VOC=12  CO=0
+  |  MAF   Averages    : avg_PM25=105  avg_PM10=9  avg_VOC=8  avg_CO=0
+  |  Internal Frame    : [006902408000] CRC=4a
+  |  Processing Slave  : AQI=176  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=163  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] trend_rising=1 after sharp jump                  | got=0001  exp=0001 | @18380806
+  +- T58  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:52417
+
+  +- T59  T59 CS Mutex never violated
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T59]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=105  avg_PM10=9  avg_VOC=8  avg_CO=0
+  |  Internal Frame    : [006902408000] CRC=4a
+  |  Processing Slave  : AQI=176  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=176  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T59]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=105  avg_PM10=9  avg_VOC=8  avg_CO=0
+  |  Internal Frame    : [006902408000] CRC=4a
+  |  Processing Slave  : AQI=176  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=176  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T59]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=105  avg_PM10=9  avg_VOC=8  avg_CO=0
+  |  Internal Frame    : [006902408000] CRC=4a
+  |  Processing Slave  : AQI=176  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=176  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T59]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=105  avg_PM10=9  avg_VOC=8  avg_CO=0
+  |  Internal Frame    : [006902408000] CRC=4a
+  |  Processing Slave  : AQI=176  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=176  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T59]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=10  PM10=4  VOC=5  CO=0
+  |  MAF   Averages    : avg_PM25=81  avg_PM10=7  avg_VOC=7  avg_CO=0
+  |  Internal Frame    : [005101c07000] CRC=d3
+  |  Processing Slave  : AQI=163  Category=2  CRC_err=0
+  |  System Outputs    : aqi_latched=176  cat=2  alarm=0  trend=1
+  +==============================================================+
+
+  |  [PASS] CS mutex not violated                            | got=0001  exp=0001 | @18599195
+  +- T59  [PASSED]  Assertions: 1 passed, 0 failed  Cycles:21839
+
+  +- T60  T60 proc AQI=500 at saturation
+
+  +==============================================================+
+  |  PIPELINE DASHBOARD  [Test T60]
+  +==============================================================+
+  |  Sensor CRC Status : A=OK    B=OK    C=OK  
+  |  Voted  Medians    : PM2.5=499  PM10=599  VOC=999  CO=999
+  |  MAF   Averages    : avg_PM25=499  avg_PM10=599  avg_VOC=999  avg_CO=999
+  |  Internal Frame    : [01f395fe7f9c] CRC=a2
+  |  Processing Slave  : AQI=500  Category=5  CRC_err=0
+  |  System Outputs    : aqi_latched=458  cat=5  alarm=1  trend=1
+  +==============================================================+
+
+  |  [PASS] proc AQI=500 at saturation                       | got=01f4  exp=01f4 | @18948635
+  |  [PASS] proc cat=5 Hazardous                             | got=0005  exp=0005 | @18948635
+  +- T60  [PASSED]  Assertions: 2 passed, 0 failed  Cycles:34944
+
+
+  +==================================================================+
+  |         SIMULATION COMPLETE -- FULL VERIFICATION REPORT          |
+  +==================================================================+
+  |  Architecture : Processing-Centric SPI Air-Quality System       |
+  |  AQI Source   : spi_processing_slave.proc.aqi_value             |
+  +==================================================================+
+
+  +---------------------------------------------------------------+
+  |  SECTION A  PERFORMANCE                                       |
+  +---------------------------------------------------------------+
+  |  Total Simulation Time  : 18950635 ns
+  |  Total Clock Cycles     : 1895063
+  |  Avg Cycles / Test      : 31584
+  +---------------------------------------------------------------+
+  +---------------------------------------------------------------+
+  |  LATENCY PROFILING (last measured sample)                     |
+  +---------------------------------------------------------------+
+  |  A. System Cycle (start->done)                                |
+  |       Clocks : 828       Time : 8280 ns
+  |  B. Processing Slave (SEND_PROC->LATCH_DATA)                  |
+  |       Clocks : 204       Time : 2050 ns
+  |  C. Live UART TX (LATCH_DATA->fifo_empty)                     |
+  |       Clocks : 3540      Time : 35400 ns
+  |  D. BRAM Dump UART (0x02 cmd->0xDD sent)                      |
+  |       Clocks : 40456     Time : 404560 ns
+  |  E. Flash Write (alarm_rising->flash_done)                    |
+  |       Clocks : 3898      Time : 38990 ns
+  +---------------------------------------------------------------+
+
+  +---------------------------------------------------------------+
+  |  SECTION B  FUNCTIONAL ACCURACY                               |
+  +---------------------------------------------------------------+
+  |  Total Tests Run       : 60
+  |  Total Assertions PASS : 146
+  |  Total Assertions FAIL : 0
+  |  Pass Rate             : 100.0 %
+  |  Result                : *** ALL TESTS PASSED ***
+  +---------------------------------------------------------------+
+
+  +---------------------------------------------------------------+
+  |  SECTION C  COMPONENT HEALTH                                  |
+  +---------------------------------------------------------------+
+  |  Math Engine (proc slave AQI/cat) : OK       (0 errors)
+  |  SPI/CRC Protocol                 : OK       (0 violations)
+  |  Sensor Reliability               : OK       (1 fault/timeout events)
+  +---------------------------------------------------------------+
+
+  +------+------------------------------------------+------+------+---------+--------+
+  |                         SECTION D  PER-TEST BREAKDOWN                              |
+  +------+------------------------------------------+------+------+---------+--------+
+  | Num  | Test Name                                | Pass | Fail |   Clks  | Result |
+  +------+------------------------------------------+------+------+---------+--------+
+  | T01  | T01 AQI Good   PM2.5=10                  |    3 |    0 |     834 | PASS   |
+  | T02  | T02 AQI Moderate PM2.5=35                |    2 |    0 |    4107 | PASS   |
+  | T03  | T03 AQI Unhealthy PM2.5=80               |    2 |    0 |   34944 | PASS   |
+  | T04  | T04 AQI Severe PM2.5=200                 |    2 |    0 |   34944 | PASS   |
+  | T05  | T05 AQI Very Severe PM2.5=300            |    2 |    0 |   34944 | PASS   |
+  | T06  | T06 AQI Hazardous PM2.5=450              |    3 |    0 |   34944 | PASS   |
+  | T07  | T07 PM2.5 seg0/seg1 boundary             |    1 |    0 |   34944 | PASS   |
+  | T08  | T08 Decimal inputs PM2.5/PM10            |    2 |    0 |    4368 | PASS   |
+  | T09  | T09 VOC dominant AQI                     |    2 |    0 |    4368 | PASS   |
+  | T10  | T10 PM10 dominant AQI                    |    2 |    0 |   34944 | PASS   |
+  | T11  | T11 All channels negative -> AQI=0       |    2 |    0 |   34845 | PASS   |
+  | T12  | T12 PM2.5 negative only                  |    2 |    0 |    4368 | PASS   |
+  | T13  | T13 PM2.5=0 invalid                      |    1 |    0 |    4368 | PASS   |
+  | T14  | T14 CO channel negative                  |    2 |    0 |    4368 | PASS   |
+  | T15  | T15 PM10+CO bad PM2.5+VOC valid          |    2 |    0 |    4368 | PASS   |
+  | T16  | T16 All 3 sensors equal -- no fault      |    2 |    0 |    4269 | PASS   |
+  | T17  | T17 Sensor C spike -- outlier rejected   |    2 |    0 |   17472 | PASS   |
+  | T18  | T18 Sensor A spike -- B+C median         |    2 |    0 |    4368 | PASS   |
+  | T19  | T19 Two sensors spike -- majority wins   |    2 |    0 |   34944 | PASS   |
+  | T20  | T20 Sensor B drift                       |    2 |    0 |    4368 | PASS   |
+  | T21  | T21 MAF pre-fill -- avg converges        |    3 |    0 |   34944 | PASS   |
+  | T22  | T22 MAF step Good->Severe 8 cyc          |    2 |    0 |   34944 | PASS   |
+  | T23  | T23 Single spike dampened by MAF         |    1 |    0 |   39312 | PASS   |
+  | T24  | T24 MAF recovery after spike             |    2 |    0 |    4368 | PASS   |
+  | T25  | T25 Alarm OFF before threshold reached   |    1 |    0 |   34945 | PASS   |
+  | T26  | T26 Continued Severe -- alarm asserts    |    2 |    0 |   26208 | PASS   |
+  | T27  | T27 7 Good readings -- alarm still ON    |    1 |    0 |   30576 | PASS   |
+  | T28  | T28 8th Good -- alarm deasserts          |    2 |    0 |   39312 | PASS   |
+  | T29  | T29 Clean frames -- all sensor CRCs OK   |    4 |    0 |    4268 | PASS   |
+  | T30  | T30 Sensor A bit-flip -- CRC fail        |    2 |    0 |    4368 | PASS   |
+  | T31  | T31 Sensor A CRC fail: B+C valid         |    2 |    0 |    4368 | PASS   |
+  | T32  | T32 Clean frame -- crc_err clears        |    2 |    0 |    4367 | PASS   |
+  | T33  | T33 Internal 1-bit flip: CRC err         |    1 |    0 |    4269 | PASS   |
+  | T34  | T34 Internal 8-bit burst: reject         |    1 |    0 |    4368 | PASS   |
+  | T35  | T35 Clean frame after injection          |    2 |    0 |    4368 | PASS   |
+  | T36  | T36 Normal transaction -- no watchdog    |    1 |    0 |    4269 | PASS   |
+  | T37  | T37 Sensor silent -- watchdog fires      |    3 |    0 |    6552 | PASS   |
+  | T38  | T38 Post-recovery proc AQI correct       |    2 |    0 |    4368 | PASS   |
+  | T39  | T39 Sleep blocks start_i                 |    2 |    0 |    3465 | PASS   |
+  | T40  | T40 UART 0x04 triggers wakeup_o          |    2 |    0 |    2156 | PASS   |
+  | T41  | T41 Post-wake proc AQI correct           |    2 |    0 |    1873 | PASS   |
+  | T42  | T42 done_o fires before FIFO drains      |    1 |    0 |    7547 | PASS   |
+  | T43  | T43 Live packet starts with 0xAA         |    1 |    0 |    1928 | PASS   |
+  | T44  | T44 UART 0x01 -> 0xCC ACK                |    1 |    0 |    9567 | PASS   |
+  | T45  | T45 Watchdog -> 0xEE error packet        |    1 |    0 |    3220 | PASS   |
+  | T46  | T46 UART 0x02 -> BRAM dump BB/DD         |    3 |    0 |  149886 | PASS   |
+  | T47  | T47 UART 0x06 -> flash dump with 0xBF    |    1 |    0 |    2611 | PASS   |
+  | T48  | T48 Alarm -- flash ptr advances          |    1 |    0 |  174344 | PASS   |
+  | T49  | T49 Verify fail -> flash_write_err       |    2 |    0 |  300872 | PASS   |
+  | T50  | T50 BOD mid-write -- safe abort          |    4 |    0 |   84301 | PASS   |
+  | T51  | T51 MCU reads AQI register               |    2 |    0 |   38753 | PASS   |
+  | T52  | T52 MCU reads Category register          |    2 |    0 |     380 | PASS   |
+  | T53  | T53 MCU writes fault threshold           |    2 |    0 |     559 | PASS   |
+  | T54  | T54 Max Saturation 0x0FFF                |    3 |    0 |   31149 | PASS   |
+  | T55  | T55 Minimum valid input (raw=1)          |    3 |    0 |   34944 | PASS   |
+  | T56  | T56 Randomized noise sweep (32)          |   32 |    0 |  139776 | PASS   |
+  | T57  | T57 All channels max-neg -> AQI=0        |    3 |    0 |   34944 | PASS   |
+  | T58  | T58 Trend rising after AQI jump          |    1 |    0 |   52417 | PASS   |
+  | T59  | T59 CS Mutex never violated              |    1 |    0 |   21839 | PASS   |
+  | T60  | T60 proc AQI=500 at saturation           |    2 |    0 |   34944 | PASS   |
+  +------+------------------------------------------+------+------+---------+--------+
+  | TOT  | All Tests                                |  146 |    0 | 1895063 |        |
+  +------+------------------------------------------+------+------+---------+--------+
+tb/spi_tb.v:1915: $finish called at 18950635 (1s)

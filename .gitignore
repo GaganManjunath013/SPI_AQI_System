@@ -1,0 +1,16 @@
+# simulation outputs
+sim_out
+*.vvp
+*.vcd
+*.fst
+*.lxt
+
+# tool work directories and logs
+fv/
+*.log
+*.cmd
+*.history
+genus.*
+innovus.*
+synthesis/out/
+openroad/work/
