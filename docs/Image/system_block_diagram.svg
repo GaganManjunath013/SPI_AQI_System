@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 590" font-family="Segoe UI, Arial, sans-serif" font-size="13">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .box  { stroke-width: 1.5; rx: 8; }
+      .ttl  { font-weight: 600; font-size: 14px; fill: #0f172a; }
+      .mod  { font-family: Consolas, monospace; font-size: 12px; fill: #475569; }
+      .txt  { fill: #334155; font-size: 12px; }
+      .lbl  { fill: #475569; font-size: 11px; }
+      .wire { stroke: #334155; stroke-width: 1.5; fill: none; }
+      .ext  { fill: #f1f5f9; stroke: #94a3b8; stroke-dasharray: 5 4; stroke-width: 1.3; rx: 16; }
+    </style>
+  </defs>
+
+  <rect width="1040" height="590" fill="#ffffff"/>
+  <text x="520" y="30" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">SPI Air-Quality Monitoring System: block diagram</text>
+
+  <!-- chip boundary -->
+  <rect x="150" y="50" width="700" height="525" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="165" y="70" class="lbl">spi_top (100 MHz system clock)</text>
+
+  <!-- ADC inputs -->
+  <rect x="10" y="100" width="110" height="50" class="ext"/>
+  <text x="65" y="121" text-anchor="middle" class="txt">ADC set A</text>
+  <text x="65" y="137" text-anchor="middle" class="lbl">4 x 13-bit signed</text>
+  <rect x="10" y="190" width="110" height="50" class="ext"/>
+  <text x="65" y="211" text-anchor="middle" class="txt">ADC set B</text>
+  <text x="65" y="227" text-anchor="middle" class="lbl">4 x 13-bit signed</text>
+  <rect x="10" y="280" width="110" height="50" class="ext"/>
+  <text x="65" y="301" text-anchor="middle" class="txt">ADC set C</text>
+  <text x="65" y="317" text-anchor="middle" class="lbl">4 x 13-bit signed</text>
+
+  <!-- sensor slaves -->
+  <g>
+    <rect x="170" y="90" width="170" height="70" class="box" fill="#dbeafe" stroke="#2563eb"/>
+    <text x="255" y="112" text-anchor="middle" class="ttl">Sensor node A</text>
+    <text x="255" y="129" text-anchor="middle" class="mod">spi_sensor_slave</text>
+    <text x="255" y="147" text-anchor="middle" class="lbl">clamp, scale, CRC-8, 50-bit frame</text>
+
+    <rect x="170" y="180" width="170" height="70" class="box" fill="#dbeafe" stroke="#2563eb"/>
+    <text x="255" y="202" text-anchor="middle" class="ttl">Sensor node B</text>
+    <text x="255" y="219" text-anchor="middle" class="mod">spi_sensor_slave</text>
+    <text x="255" y="237" text-anchor="middle" class="lbl">clamp, scale, CRC-8, 50-bit frame</text>
+
+    <rect x="170" y="270" width="170" height="70" class="box" fill="#dbeafe" stroke="#2563eb"/>
+    <text x="255" y="292" text-anchor="middle" class="ttl">Sensor node C</text>
+    <text x="255" y="309" text-anchor="middle" class="mod">spi_sensor_slave</text>
+    <text x="255" y="327" text-anchor="middle" class="lbl">clamp, scale, CRC-8, 50-bit frame</text>
+  </g>
+  <path class="wire" d="M120,125 H170" marker-end="url(#arr)"/>
+  <path class="wire" d="M120,215 H170" marker-end="url(#arr)"/>
+  <path class="wire" d="M120,305 H170" marker-end="url(#arr)"/>
+
+  <!-- SPI master -->
+  <rect x="170" y="400" width="170" height="80" class="box" fill="#cffafe" stroke="#0891b2"/>
+  <text x="255" y="424" text-anchor="middle" class="ttl">SPI master</text>
+  <text x="255" y="441" text-anchor="middle" class="mod">spi_master</text>
+  <text x="255" y="459" text-anchor="middle" class="lbl">mode 0, 25 MHz SCLK</text>
+  <text x="255" y="473" text-anchor="middle" class="lbl">50-bit shift in / out</text>
+
+  <!-- MISO bus from sensors down to master -->
+  <path class="wire" d="M340,125 H365 V370 H300 V400" marker-end="url(#arr)"/>
+  <path class="wire" d="M340,215 H365"/>
+  <path class="wire" d="M340,305 H365"/>
+  <text x="371" y="262" class="lbl">MISO</text>
+  <text x="371" y="276" class="lbl">cs1 / cs3 / cs4</text>
+
+  <!-- central control -->
+  <rect x="440" y="90" width="230" height="290" class="box" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="555" y="114" text-anchor="middle" class="ttl">Control and data path</text>
+  <text x="555" y="131" text-anchor="middle" class="mod">spi_top</text>
+  <text x="458" y="158" class="txt">23-state main FSM</text>
+  <text x="458" y="180" class="txt">CRC-8 check on each sensor frame</text>
+  <text x="458" y="202" class="txt">Failed sensor replaced by midpoint</text>
+  <text x="458" y="224" class="txt">Median-of-three voter (registered)</text>
+  <text x="458" y="246" class="txt">8-sample moving average</text>
+  <text x="458" y="268" class="txt">Averaged frame with new CRC-8</text>
+  <text x="458" y="290" class="txt">Alarm hysteresis (4 on / 8 off)</text>
+  <text x="458" y="312" class="txt">AQI trend flag, sensor fault flags</text>
+  <text x="458" y="334" class="txt">Watchdog, sleep clock gating</text>
+  <text x="458" y="356" class="txt">128-byte UART transmit FIFO</text>
+
+  <!-- master <-> control -->
+  <path class="wire" d="M340,425 H400 V300 H440" marker-end="url(#arr)"/>
+  <text x="346" y="418" class="lbl">rx frame</text>
+  <path class="wire" d="M440,340 H420 V455 H340" marker-end="url(#arr)"/>
+  <text x="346" y="470" class="lbl">tx frame, start</text>
+
+  <!-- processing slave -->
+  <rect x="440" y="440" width="230" height="110" class="box" fill="#fef9c3" stroke="#ca8a04"/>
+  <text x="555" y="464" text-anchor="middle" class="ttl">AQI processing slave</text>
+  <text x="555" y="481" text-anchor="middle" class="mod">spi_processing_slave</text>
+  <text x="555" y="501" text-anchor="middle" class="lbl">CRC-8 check on the averaged frame</text>
+  <text x="555" y="517" text-anchor="middle" class="lbl">EPA breakpoints, 2-stage pipeline</text>
+  <text x="555" y="533" text-anchor="middle" class="lbl">AQI 0 to 500, category 0 to 5</text>
+
+  <path class="wire" d="M255,480 V520 H440" marker-end="url(#arr)"/>
+  <text x="270" y="514" class="lbl">MOSI, SCLK, cs2</text>
+  <path class="wire" d="M610,440 V380" marker-end="url(#arr)"/>
+  <text x="602" y="414" text-anchor="end" class="lbl">AQI, category,</text>
+  <text x="602" y="428" text-anchor="end" class="lbl">CRC error</text>
+
+  <!-- right-hand peripherals -->
+  <rect x="710" y="80" width="125" height="92" class="box" fill="#ffedd5" stroke="#ea580c"/>
+  <text x="772" y="102" text-anchor="middle" class="ttl">UART</text>
+  <text x="772" y="119" text-anchor="middle" class="mod">uart_tx, uart_rx</text>
+  <text x="772" y="138" text-anchor="middle" class="lbl">921,600 baud, 8N1</text>
+  <text x="772" y="154" text-anchor="middle" class="lbl">command decoder</text>
+
+  <rect x="710" y="195" width="125" height="80" class="box" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="772" y="217" text-anchor="middle" class="ttl">Alarm log</text>
+  <text x="772" y="234" text-anchor="middle" class="mod">alarm_bram</text>
+  <text x="772" y="253" text-anchor="middle" class="lbl">64 x 72 bits, parity</text>
+
+  <rect x="710" y="298" width="125" height="92" class="box" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="772" y="320" text-anchor="middle" class="ttl">Flash controller</text>
+  <text x="772" y="337" text-anchor="middle" class="mod">spi_flash_ctrl</text>
+  <text x="772" y="356" text-anchor="middle" class="lbl">write, verify, retry</text>
+  <text x="772" y="372" text-anchor="middle" class="lbl">brown-out safe abort</text>
+
+  <rect x="710" y="440" width="125" height="92" class="box" fill="#fee2e2" stroke="#dc2626"/>
+  <text x="772" y="462" text-anchor="middle" class="ttl">MCU register map</text>
+  <text x="772" y="479" text-anchor="middle" class="mod">spi_slave</text>
+  <text x="772" y="498" text-anchor="middle" class="lbl">9 registers</text>
+  <text x="772" y="514" text-anchor="middle" class="lbl">synchronised inputs</text>
+
+  <path class="wire" d="M670,126 H710" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <path class="wire" d="M670,235 H710" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <path class="wire" d="M670,344 H710" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <path class="wire" d="M650,380 V408 H690 V486 H710" marker-end="url(#arr)"/>
+  <text x="694" y="425" class="lbl">live values</text>
+
+  <!-- external devices -->
+  <rect x="900" y="100" width="125" height="52" class="ext"/>
+  <text x="962" y="131" text-anchor="middle" class="txt">Host PC</text>
+  <rect x="900" y="318" width="125" height="52" class="ext"/>
+  <text x="962" y="349" text-anchor="middle" class="txt">SPI NOR flash</text>
+  <rect x="900" y="460" width="125" height="52" class="ext"/>
+  <text x="962" y="491" text-anchor="middle" class="txt">External MCU</text>
+
+  <path class="wire" d="M835,126 H900" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="867" y="118" text-anchor="middle" class="lbl">TX / RX</text>
+  <path class="wire" d="M835,344 H900" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="867" y="336" text-anchor="middle" class="lbl">SPI</text>
+  <path class="wire" d="M835,486 H900" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="867" y="478" text-anchor="middle" class="lbl">SPI</text>
+
+  <!-- status pins -->
+  <path class="wire" d="M555,90 V58" marker-end="url(#arr)"/>
+  <text x="565" y="72" class="lbl">alarm, AQI, category, fault, trend, done pins</text>
+</svg>

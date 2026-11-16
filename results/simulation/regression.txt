@@ -17,7 +17,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  A  AQI via Processing Slave -- All 6 EPA Categories  (T01-T10)
-  roc.category used for cat checks
+  AQI sourced from proc.aqi_value; proc.category used for cat checks
   ================================================================
   +- T01  T01 AQI Good   PM2.5=10
 
@@ -193,7 +193,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  B  Input Validation & Clamping  (T11-T15)
-  , per-channel error flags, AQI=0
+  Negative/zero inputs, per-channel error flags, AQI=0
   ================================================================
   +- T11  T11 All channels negative -> AQI=0
 
@@ -282,7 +282,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  C  Triple Redundancy Median Voter  (T16-T20)
-  I stability via processing slave
+  Outlier rejection, fault flags, AQI stability via processing slave
   ================================================================
   +- T16  T16 All 3 sensors equal -- no fault
 
@@ -384,7 +384,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  D  MAF Smoothing -- Verified via Internal Transfer Frame  (T21-T24)
-  ear in proc_frame_latched[49:10]
+  avg_pm25/avg_pm10 must appear in proc_frame_latched[49:10]
   ================================================================
   +- T21  T21 MAF pre-fill -- avg converges
 
@@ -469,7 +469,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  E  Alarm Hysteresis via Processing Slave Category  (T25-T28)
-  rt; cat comes from proc.category
+  N_ON=4 assert, N_OFF=8 deassert; cat comes from proc.category
   ================================================================
   +- T25  T25 Alarm OFF before threshold reached
 
@@ -540,7 +540,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  F  Sensor-Level CRC Fault Injection  (T29-T32)
-  RC; bad sensor excluded from TMR
+  spi_top checks each sensor CRC; bad sensor excluded from TMR
   ================================================================
   +- T29  T29 Clean frames -- all sensor CRCs OK
 
@@ -615,7 +615,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  G  Internal Transfer Frame CRC Injection  (T33-T35)
-  ched; slave reports crc_err_flag
+  Force bad CRC in proc_frame_latched; slave reports crc_err_flag
   ================================================================
   +- T33  T33 Internal 1-bit flip: CRC err
 
@@ -669,7 +669,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  H  Watchdog Timer & Sensor Fault  (T36-T38)
-  imeout, sensor dropout, recovery
+  1024-cycle timeout, sensor dropout, recovery
   ================================================================
   +- T36  T36 Normal transaction -- no watchdog
 
@@ -725,7 +725,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  I  Sleep / Wake Mode  (T39-T41)
-  ke command; post-wake AQI verify
+  Sleep blocks FSM; UART 0x04 wake command; post-wake AQI verify
   ================================================================
   +- T39  T39 Sleep blocks start_i
   |  [PASS] FSM stays IDLE                                   | got=0000  exp=0000 | @7664575
@@ -757,7 +757,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  J  UART DMA Non-Blocking & Commands  (T42-T47)
-  ins; 0xAA/CC/EE/BB/BF/DD packets
+  done_o before FIFO drains; 0xAA/CC/EE/BB/BF/DD packets
   ================================================================
   +- T42  T42 done_o fires before FIFO drains
 
@@ -848,7 +848,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  K  SPI Flash Persistence  (T48-T50)
-  ce, verify-retry, BOD safe-abort
+  Flash pointer advance, verify-retry, BOD safe-abort
   ================================================================
   +- T48  T48 Alarm -- flash ptr advances
 
@@ -929,7 +929,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  L  SPI Slave Register Map  (T51-T53)
-   proc slave); dynamic thresholds
+  MCU reads AQI/Category (now from proc slave); dynamic thresholds
   ================================================================
   +- T51  T51 MCU reads AQI register
 
@@ -961,7 +961,7 @@ VCD info: dumpfile dump.vcd opened for output.
 
   ================================================================
   SECTION  M  Extreme Boundary Sweeps  (T54-T60)
-  akpoint sweeps, random, CS mutex
+  Max saturation, min valid, breakpoint sweeps, random, CS mutex
   ================================================================
   +- T54  T54 Max Saturation 0x0FFF
 

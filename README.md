@@ -11,7 +11,7 @@ from RTL to a routed layout with the open-source OpenROAD flow on the SkyWater
 130 nm process. Every result on this page can be reproduced with free tools.
 
 <p align="center">
-  <a href="docs/Image/flow.png"><img src="docs/Image/flow_preview.png" alt="System block diagram" width="720"></a>
+  <img src="docs/Image/system_block_diagram.svg" alt="System block diagram" width="860">
 </p>
 
 ## Contents

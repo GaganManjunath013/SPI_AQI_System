@@ -724,7 +724,7 @@ end
 // -----------------------------------------------------------------------------
 task print_section;
     input [511:0] title;
-    input [255:0] subtitle;
+    input [1023:0] subtitle;
     input [63:0]  t_range;
     begin
         $display("");
