@@ -1,0 +1,273 @@
+# OpenSTA report: v5 RTL and corrected constraints
+# sky130hd, typical corner, after clock tree synthesis with propagated clocks,
+# placement-based parasitics, and no hold repair applied.
+
+=== worst setup slack
+worst slack max 0.97
+=== worst hold slack
+worst slack min 0.01
+=== tns setup
+tns max 0.00
+=== tns hold
+tns min 0.00
+=== clock skew
+Clock clk_i
+   1.32 source latency sleep_s2$_DFF_PP0_/CLK ^
+  -1.20 target latency sleep_latch$_DFF_NP0_/CLK_N v
+   0.15 clock uncertainty
+   0.00 CRPR
+--------------
+   0.26 setup skew
+
+Clock clk_io
+No launch/capture paths found.
+
+Clock sclk_flash
+No launch/capture paths found.
+
+=== setup: worst path (summary of ends)
+max_delay/setup group gated clock
+
+                                     Required  Actual
+Endpoint                               Delay   Delay   Slack
+------------------------------------------------------------
+_30432_/A (sky130_fd_sc_hd__nor2b_1)   10.33    7.10    3.24 (MET)
+
+max_delay/setup group clk_i
+
+                                     Required  Actual
+Endpoint                               Delay   Delay   Slack
+------------------------------------------------------------
+acc_aqi[11]$_DFFE_PP0P_/D (sky130_fd_sc_hd__dfrtp_1)   11.01    9.82    1.19 (MET)
+acc_aqi[9]$_DFFE_PP0P_/D (sky130_fd_sc_hd__dfrtp_1)   11.07    9.63    1.45 (MET)
+acc_aqi[10]$_DFFE_PP0P_/D (sky130_fd_sc_hd__dfrtp_1)   11.03    9.51    1.52 (MET)
+
+max_delay/setup group clk_io
+
+                                     Required  Actual
+Endpoint                               Delay   Delay   Slack
+------------------------------------------------------------
+input_err_o[1] (output)                 6.30    5.33    0.97 (MET)
+input_err_o[0] (output)                 6.30    4.69    1.61 (MET)
+input_err_o[3] (output)                 6.30    4.48    1.82 (MET)
+
+=== setup: worst path (full)
+Startpoint: sleep_latch$_DFF_NP0_
+            (falling edge-triggered flip-flop clocked by clk_i)
+Endpoint: _30432_ (rising clock gating-check end-point clocked by clk_i)
+Path Group: gated clock
+Path Type: max
+
+     Cap     Slew    Delay     Time   Description
+---------------------------------------------------------------------------
+                     5.000    5.000   clock clk_i (fall edge)
+                     1.202    6.202   clock network delay (propagated)
+            0.046    0.000    6.202 v sleep_latch$_DFF_NP0_/CLK_N (sky130_fd_sc_hd__dfrtn_1)
+   0.087    0.743    0.878    7.080 ^ sleep_latch$_DFF_NP0_/Q (sky130_fd_sc_hd__dfrtn_1)
+            0.744    0.019    7.099 ^ _30432_/A (sky130_fd_sc_hd__nor2b_1)
+                              7.099   data arrival time
+
+                    10.000   10.000   clock clk_i (rise edge)
+                     0.485   10.485   clock network delay (propagated)
+                    -0.150   10.335   clock uncertainty
+                     0.000   10.335   clock reconvergence pessimism
+                             10.335 ^ _30432_/B_N (sky130_fd_sc_hd__nor2b_1)
+                     0.000   10.335   clock gating setup time
+                             10.335   data required time
+---------------------------------------------------------------------------
+                             10.335   data required time
+                             -7.099   data arrival time
+---------------------------------------------------------------------------
+                              3.236   slack (MET)
+
+
+Startpoint: proc.s2_aqi_co[0]$_DFF_PP0_
+            (rising edge-triggered flip-flop clocked by clk_i)
+Endpoint: acc_aqi[11]$_DFFE_PP0P_
+          (rising edge-triggered flip-flop clocked by clk_i)
+Path Group: clk_i
+Path Type: max
+
+     Cap     Slew    Delay     Time   Description
+---------------------------------------------------------------------------
+                     0.000    0.000   clock clk_i (rise edge)
+                     1.326    1.326   clock network delay (propagated)
+            0.066    0.000    1.326 ^ proc.s2_aqi_co[0]$_DFF_PP0_/CLK (sky130_fd_sc_hd__dfrtp_1)
+   0.009    0.095    0.367    1.693 ^ proc.s2_aqi_co[0]$_DFF_PP0_/Q (sky130_fd_sc_hd__dfrtp_1)
+   0.007    0.044    0.064    1.757 v _20025_/Y (sky130_fd_sc_hd__inv_1)
+   0.002    0.047    0.275    2.032 v _31268_/SUM (sky130_fd_sc_hd__ha_1)
+   0.003    0.046    0.141    2.173 v _20028_/Y (sky130_fd_sc_hd__nand2b_1)
+   0.005    0.041    0.182    2.354 v _20029_/X (sky130_fd_sc_hd__a21o_1)
+   0.004    0.038    0.176    2.530 v _20030_/X (sky130_fd_sc_hd__a21o_1)
+   0.011    0.066    0.205    2.735 v _20031_/X (sky130_fd_sc_hd__a21o_1)
+   0.015    0.339    0.320    3.055 ^ _20032_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.012    0.131    0.188    3.244 v _20038_/Y (sky130_fd_sc_hd__o21ai_1)
+   0.069    0.619    0.503    3.747 ^ _20040_/Y (sky130_fd_sc_hd__nand2_1)
+   0.013    0.309    0.395    4.142 ^ _20334_/Y (sky130_fd_sc_hd__mux2i_1)
+   0.002    0.047    0.282    4.424 v _31261_/SUM (sky130_fd_sc_hd__ha_1)
+   0.004    0.049    0.144    4.569 v _19993_/Y (sky130_fd_sc_hd__nand2b_1)
+   0.006    0.049    0.191    4.759 v _19994_/X (sky130_fd_sc_hd__a21o_1)
+   0.005    0.041    0.182    4.942 v _19995_/X (sky130_fd_sc_hd__a21o_1)
+   0.006    0.046    0.184    5.126 v _19996_/X (sky130_fd_sc_hd__a21o_1)
+   0.006    0.171    0.188    5.313 ^ _19997_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.007    0.078    0.176    5.489 ^ _20000_/X (sky130_fd_sc_hd__o21a_1)
+   0.003    0.057    0.071    5.561 v _20003_/Y (sky130_fd_sc_hd__o21ai_1)
+   0.096    0.123    0.230    5.790 v place1461/X (sky130_fd_sc_hd__buf_4)
+   0.018    0.629    0.617    6.408 ^ _20333_/Y (sky130_fd_sc_hd__o32ai_1)
+   0.062    0.528    0.549    6.957 ^ _20356_/X (sky130_fd_sc_hd__a21o_1)
+   0.003    0.075    0.513    7.470 v _31052_/SUM (sky130_fd_sc_hd__fa_1)
+   0.010    0.092    0.104    7.574 ^ _25471_/Y (sky130_fd_sc_hd__inv_1)
+   0.003    0.052    0.232    7.806 v _31270_/SUM (sky130_fd_sc_hd__ha_1)
+   0.003    0.032    0.173    7.979 v _20339_/X (sky130_fd_sc_hd__a21o_1)
+   0.010    0.230    0.226    8.205 ^ _20340_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.003    0.053    0.089    8.294 v _20363_/Y (sky130_fd_sc_hd__o21bai_1)
+   0.010    0.245    0.246    8.540 ^ _20364_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.004    0.061    0.100    8.640 v _20388_/Y (sky130_fd_sc_hd__o21bai_1)
+   0.009    0.219    0.230    8.870 ^ _20389_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.003    0.055    0.092    8.962 v _20408_/Y (sky130_fd_sc_hd__o21bai_1)
+   0.010    0.235    0.239    9.201 ^ _20409_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.005    0.101    0.157    9.358 v _20425_/Y (sky130_fd_sc_hd__o21ai_0)
+   0.006    0.173    0.194    9.552 ^ _20426_/Y (sky130_fd_sc_hd__xnor2_1)
+   0.003    0.165    0.092    9.644 v _20429_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.003    0.092    0.128    9.772 ^ _20430_/Y (sky130_fd_sc_hd__nor2_1)
+   0.003    0.123    0.047    9.819 v _20431_/Y (sky130_fd_sc_hd__a21oi_1)
+            0.123    0.000    9.819 v acc_aqi[11]$_DFFE_PP0P_/D (sky130_fd_sc_hd__dfrtp_1)
+                              9.819   data arrival time
+
+                    10.000   10.000   clock clk_i (rise edge)
+                     1.309   11.309   clock network delay (propagated)
+                    -0.150   11.159   clock uncertainty
+                     0.000   11.159   clock reconvergence pessimism
+                             11.159 ^ acc_aqi[11]$_DFFE_PP0P_/CLK (sky130_fd_sc_hd__dfrtp_1)
+                    -0.145   11.013   library setup time
+                             11.013   data required time
+---------------------------------------------------------------------------
+                             11.013   data required time
+                             -9.819   data arrival time
+---------------------------------------------------------------------------
+                              1.194   slack (MET)
+
+
+Startpoint: raw_voc_i[8] (input port clocked by clk_io)
+Endpoint: input_err_o[1] (output port clocked by clk_io)
+Path Group: clk_io
+Path Type: max
+
+     Cap     Slew    Delay     Time   Description
+---------------------------------------------------------------------------
+            0.000    0.000    0.000   clock clk_io (rise edge)
+                     1.300    1.300   clock network delay (ideal)
+                     2.000    3.300 v input external delay
+   0.010    0.000    0.000    3.300 v raw_voc_i[8] (in)
+   0.003    0.026    0.069    3.369 v input169/X (sky130_fd_sc_hd__buf_1)
+   0.007    0.366    0.374    3.743 ^ _25881_/Y (sky130_fd_sc_hd__nor4_1)
+   0.003    0.096    0.123    3.866 v _25883_/Y (sky130_fd_sc_hd__nand3_1)
+   0.057    0.260    0.396    4.262 v _25885_/X (sky130_fd_sc_hd__and4_1)
+   0.084    0.679    0.598    4.860 ^ _25921_/Y (sky130_fd_sc_hd__inv_1)
+   0.040    0.462    0.465    5.325 ^ output199/X (sky130_fd_sc_hd__buf_1)
+            0.462    0.006    5.331 ^ input_err_o[1] (out)
+                              5.331   data arrival time
+
+            0.000   10.000   10.000   clock clk_io (rise edge)
+                     1.300   11.300   clock network delay (ideal)
+                     0.000   11.300   clock reconvergence pessimism
+                    -5.000    6.300   output external delay
+                              6.300   data required time
+---------------------------------------------------------------------------
+                              6.300   data required time
+                             -5.331   data arrival time
+---------------------------------------------------------------------------
+                              0.969   slack (MET)
+
+
+=== hold: 40 worst endpoints
+min_delay/hold group gated clock
+
+                                     Required  Actual
+Endpoint                               Delay   Delay   Slack
+------------------------------------------------------------
+_30432_/A (sky130_fd_sc_hd__nor2b_1)    5.55    6.84    1.30 (MET)
+
+min_delay/hold group clk_i
+
+                                     Required  Actual
+Endpoint                               Delay   Delay   Slack
+------------------------------------------------------------
+slave_inst.r_cat_ff2[1]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.63    0.29 (MET)
+slave_inst.r_pm25_ff2[1]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.64    0.29 (MET)
+slave_inst.r_aqi_ff2[5]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.33    1.62    0.29 (MET)
+proc.s2_aqi_co[0]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.63    0.29 (MET)
+slave_inst.r_co_ff2[1]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.63    0.29 (MET)
+slave_inst.r_aqi_ff2[3]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.33    1.63    0.30 (MET)
+slave_inst.r_co_ff2[2]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.65    0.30 (MET)
+slave_inst.r_aqi_ff2[6]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.64    0.30 (MET)
+slave_inst.r_pm10_ff2[0]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.64    0.30 (MET)
+slave_inst.r_co_ff2[3]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.65    0.30 (MET)
+slave_inst.r_co_ff2[4]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.65    0.30 (MET)
+slave_inst.r_co_ff2[5]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.65    0.30 (MET)
+slave_inst.r_stat_ff2[6]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.33    1.63    0.30 (MET)
+slave_inst.r_trend_ff2[0]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.33    1.63    0.30 (MET)
+flash_ctrl.bod_s2$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.38    1.68    0.30 (MET)
+proc.s2_aqi_co[1]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.64    0.30 (MET)
+slave_inst.r_pm10_ff2[9]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.64    0.30 (MET)
+slave_inst.r_pm25_ff2[7]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.30 (MET)
+slave_inst.r_pm25_ff2[0]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.64    0.30 (MET)
+slave_inst.r_voc_ff2[3]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.30 (MET)
+slave_inst.r_voc_ff2[5]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.30 (MET)
+slave_inst.r_pm10_ff2[2]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.30 (MET)
+slave_inst.r_pm10_ff2[4]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.30 (MET)
+slave_inst.r_pm25_ff2[3]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.30 (MET)
+slave_inst.r_pm10_ff2[6]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+slave_inst.r_pm10_ff2[1]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+slave_inst.r_pm25_ff2[6]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+slave_inst.r_aqi_ff2[4]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.33    1.64    0.31 (MET)
+slave_inst.r_pm25_ff2[8]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.64    0.31 (MET)
+slave_inst.r_co_ff2[0]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.65    0.31 (MET)
+slave_inst.r_pm25_ff2[4]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+proc.s2_aqi_co[4]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+proc.s2_aqi_co[7]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+slave_inst.r_pm25_ff2[9]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.64    0.31 (MET)
+slave_inst.r_voc_ff2[9]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.65    0.31 (MET)
+proc.s2_aqi_co[6]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+slave_inst.r_voc_ff2[6]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+slave_inst.r_voc_ff2[1]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+slave_inst.r_co_ff2[9]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.34    1.64    0.31 (MET)
+slave_inst.r_co_ff2[6]$_DFF_PP0_/D (sky130_fd_sc_hd__dfrtp_1)    1.35    1.66    0.31 (MET)
+
+min_delay/hold group clk_io
+
+                                     Required  Actual
+Endpoint                               Delay   Delay   Slack
+------------------------------------------------------------
+uart_tx_o (output)                      1.80    1.81    0.01 (MET)
+flash_cs_o (output)                     1.80    1.84    0.04 (MET)
+wakeup_o (output)                       1.80    1.85    0.05 (MET)
+done_o (output)                         1.80    1.87    0.07 (MET)
+flash_mosi_o (output)                   1.80    1.91    0.11 (MET)
+bod_flag_o (output)                     1.80    1.92    0.12 (MET)
+aqi_out_o[4] (output)                   1.80    1.95    0.15 (MET)
+cs3 (output)                            1.80    1.95    0.15 (MET)
+cs4 (output)                            1.80    1.95    0.15 (MET)
+aqi_out_o[5] (output)                   1.80    1.97    0.17 (MET)
+cat_out_o[0] (output)                   1.80    2.01    0.21 (MET)
+trend_rising_o (output)                 1.80    2.04    0.24 (MET)
+sensor_fault_o[0] (output)              1.80    2.07    0.27 (MET)
+sensor_fault_o[1] (output)              1.80    2.08    0.28 (MET)
+sensor_fault_o[2] (output)              1.80    2.09    0.29 (MET)
+aqi_out_o[7] (output)                   1.80    2.14    0.34 (MET)
+flash_write_err_o (output)              1.80    2.17    0.37 (MET)
+aqi_out_o[0] (output)                   1.80    2.21    0.41 (MET)
+cat_out_o[1] (output)                   1.80    2.23    0.43 (MET)
+sensor_timeout_o (output)               1.80    2.27    0.47 (MET)
+crc_err_o (output)                      1.80    2.29    0.49 (MET)
+aqi_out_o[8] (output)                   1.80    2.29    0.49 (MET)
+alarm_o (output)                        1.80    2.30    0.50 (MET)
+aqi_out_o[2] (output)                   1.80    2.31    0.51 (MET)
+cat_out_o[2] (output)                   1.80    2.39    0.59 (MET)
+input_err_o[3] (output)                 1.80    2.50    0.70 (MET)
+aqi_out_o[6] (output)                   1.80    2.51    0.71 (MET)
+input_err_o[2] (output)                 1.80    2.52    0.72 (MET)
+aqi_out_o[1] (output)                   1.80    2.53    0.73 (MET)
+aqi_out_o[3] (output)                   1.80    2.55    0.75 (MET)
+input_err_o[0] (output)                 1.80    2.78    0.98 (MET)
+input_err_o[1] (output)                 1.80    3.36    1.56 (MET)
